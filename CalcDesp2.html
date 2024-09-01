@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>Calculadora de Despesas</title>
+    <style>
+      h1, h2 {
+        text-align: center;
+        margin-top: 25px;
+        margin-bottom: 8px;
+      }
+      p {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      footer {
+        text-align: center;
+        font-style: italic;
+      }
+      .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .table {
+        margin-top: 20px;
+      }
+    </style>
+</head>
+<body>
+    <header>
+      <nav class="navbar navbar-expand-lg bg-info">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#"><img src="/Users/macbook/Documents/Site/IMG/calculadora.png" alt="Logo" height="40"></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="#">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Sobre</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="#">Mais</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <div class="section">
+      <h1>Calculadora de Despesas</h1>
+      <p>Este é um recurso criado para registro e cálculo de despesas pessoais</p>
+      <div class="form-container">
+        <form id="despesasForm">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="valor" class="form-label">Valor:</label>
+              <input type="number" id="valor" name="valor" class="form-control" min="0" step="0.01">
+            </div>
+            <div class="col-md-4">
+              <label for="descricaoDespesa" class="form-label">Descrição:</label>
+              <input type="text" id="descricaoDespesa" name="descricaoDespesa" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label for="categoria" class="form-label">Categoria:</label>
+              <select id="categoria" name="categoria" class="form-select">
+                <option value="" disabled selected>Selecione uma opção</option>
+                <option value="Alimentação">Alimentação</option>
+                <option value="Contas">Contas fixas</option>
+                <option value="Habitação">Habitação</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Educação">Educação</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+          </div>
+          <div class="d-flex justify-content-center mt-3">
+            <button type="button" id="novaDespesa" class="btn btn-primary">Adicionar</button>
+          </div>
+          <div class="mt-2">
+            <p id="errorMessage" class="text-danger"></p>
+          </div>
+        </form>
+      </div>
+
+      <div class="d-flex justify-content-center mt-4">
+        <table id="despesasTable" class="table table-bordered w-75">
+          <thead>
+            <tr>
+              <th>Valor</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="listaDespesas">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Resultado Total</h2>
+      <p>Aqui você verá o total de despesas registradas. O total será atualizado automaticamente conforme você adiciona novas despesas.</p>
+      <div class="d-flex justify-content-center mt-4">
+        <h3 id="resultadoTotal">R$ 0,00</h3>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Gráfico de Despesas</h2>
+      <p>Esta seção exibirá um gráfico visual das despesas registradas, permitindo uma análise visual dos gastos por categoria.</p>
+      <div class="d-flex justify-content-center mt-4">
+       
+        <canvas id="despesasChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+
+    <footer>
+      <p>Desenvolvido por Thiago Queiroz - Agosto/2024</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+      class Despesa {
+        constructor(valor, descricao, categoria) {
+          this.valor = valor;
+          this.descricao = descricao;
+          this.categoria = categoria;
+        }
+      }
+
+      const despesas = [];
+
+      function adicionarDespesa() {
+        const form = document.getElementById("despesasForm");
+        const valor = parseFloat(form.elements["valor"].value.trim());
+        const descricao = form.elements["descricaoDespesa"].value.trim();
+        const categoria = form.elements["categoria"].value;
+        const errorMessage = document.getElementById("errorMessage");
+
+        if (!isNaN(valor) && descricao && categoria) {
+          const novaDespesa = new Despesa(valor, descricao, categoria);
+          despesas.push(novaDespesa);
+          form.reset();
+          renderDespesas();
+          atualizarResultadoTotal();
+          errorMessage.textContent = "";
+        } else {
+          errorMessage.textContent = "Por favor, preencha todos os dados corretamente";
+        }
+      }
+
+      function atualizarResultadoTotal() {
+        const resultadoTotal = document.getElementById("resultadoTotal");
+        const total = despesas.reduce((acc, despesa) => acc + despesa.valor, 0);
+        resultadoTotal.textContent = `R$ ${total.toFixed(2)}`;
+      }
+
+      function renderDespesas() {
+        const listaDespesas = document.getElementById("listaDespesas");
+        listaDespesas.innerHTML = "";
+
+        despesas.forEach((despesa, index) => {
+          const row = document.createElement("tr");
+
+          const valorCell = document.createElement("td");
+          valorCell.textContent = `R$ ${despesa.valor.toFixed(2)}`;
+          row.appendChild(valorCell);
+
+          const descricaoCell = document.createElement("td");
+          descricaoCell.textContent = despesa.descricao;
+          row.appendChild(descricaoCell);
+
+          const categoriaCell = document.createElement("td");
+          categoriaCell.textContent = despesa.categoria;
+          row.appendChild(categoriaCell);
+
+          const acoesCell = document.createElement("td");
+          const removeButton = document.createElement("button");
+          removeButton.textContent = "Remover";
+          removeButton.classList.add("btn", "btn-danger");
+          removeButton.onclick = () => removeDespesa(index);
+          acoesCell.appendChild(removeButton);
+          row.appendChild(acoesCell);
+
+          listaDespesas.appendChild(row);
+        });
+      }
+
+      function removeDespesa(index) {
+        despesas.splice(index, 1);
+        renderDespesas();
+        atualizarResultadoTotal();
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("novaDespesa").addEventListener("click", adicionarDespesa);
+      });
+    </script>
+</body>
+</html>
